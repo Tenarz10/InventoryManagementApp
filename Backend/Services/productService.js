@@ -1,4 +1,4 @@
-// All database logic for products lives here. Controllers just call these functions.
+
 const mongoose = require("mongoose");
 const Product = require("../Models/Product");
 const AppError = require("../Utils/AppError");
@@ -7,7 +7,7 @@ const assertValidId = (id) => {
   if (!mongoose.isValidObjectId(id)) throw new AppError("Invalid product id", 400);
 };
 
-// Stops users from breaking the search with regex symbols like ( or *
+
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const createProduct = async (data) => Product.create(data);
@@ -29,7 +29,7 @@ const getProducts = async ({ page = 1, limit = 10, search, category, lowStock, s
     filter.$expr = { $lte: ["$quantity", "$reorderLevel"] };
   }
 
-  // ?sort=price or ?sort=-price (minus = descending). Only these fields are allowed.
+  
   const sortable = ["name", "price", "quantity", "createdAt"];
   let sortBy = { createdAt: -1 };
   if (typeof sort === "string") {
@@ -80,8 +80,7 @@ const deleteProduct = async (id) => {
   return product;
 };
 
-// Add or remove stock in ONE atomic step, so two requests at the same time can't
-// push the quantity below zero. The stock movements teammate can call this too.
+
 const adjustStock = async (id, change) => {
   assertValidId(id);
 
