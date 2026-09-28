@@ -8,13 +8,12 @@ const {
 
 const router = express.Router();
 
-// TODO: once the auth middleware exists, protect the write routes, e.g.
-// router.post("/", protect, validateCreateProduct, controller.createProduct);
+
 
 router.get("/", controller.getProducts);
 router.post("/", validateCreateProduct, controller.createProduct);
 
-// Must come BEFORE "/:id", otherwise "low-stock" would be treated as an id
+
 router.get("/low-stock", controller.getLowStockProducts);
 
 router.get("/:id", controller.getProductById);
