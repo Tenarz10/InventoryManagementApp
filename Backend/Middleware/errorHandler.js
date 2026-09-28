@@ -1,5 +1,4 @@
-// Central error handler. Must be the LAST app.use() in app.js.
-// Turns errors (from Mongoose, bad JSON, our AppError) into clean JSON responses.
+
 const errorHandler = (err, req, res, next) => {
   let statusCode = err.statusCode || 500;
   let message = err.message || "Something went wrong";
