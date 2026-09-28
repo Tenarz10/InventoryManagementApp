@@ -49,7 +49,7 @@ const productSchema = new mongoose.Schema(
         message: "Reorder level must be a whole number",
       },
     },
-    // Optional link to the Supplier model (written by another teammate)
+    
     supplier: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Supplier",
@@ -59,7 +59,7 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Not stored in the database, calculated whenever a product is returned
+
 productSchema.virtual("isLowStock").get(function () {
   return this.quantity <= this.reorderLevel;
 });
