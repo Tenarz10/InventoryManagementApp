@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const stockRoutes = require("./Routes/stockRoutes");
+const errorHandler = require("./Middleware/errorHandler");
 
 const app = express();
 
@@ -32,10 +34,12 @@ app.get("/api/status", (req, res) => {
   });
 });
 
+// Stock levels and stock movements (in, out, adjustments)
+app.use("/api/stock", stockRoutes);
+
 // Future routes will go here
 // app.use("/api/products", productRoutes);
 // app.use("/api/suppliers", supplierRoutes);
-// app.use("/api/stock-movements", stockMovementRoutes);
 // app.use("/api/auth", authRoutes);
 
 // Handle routes that do not exist
@@ -45,5 +49,8 @@ app.use((req, res) => {
     message: "Route not found"
   });
 });
+
+// Handle errors thrown by routes
+app.use(errorHandler);
 
 module.exports = app;
