@@ -1,0 +1,674 @@
+1. Overview
+
+The **User Module** was developed as a complete authentication, authorization, profile, password-management, and user-administration feature for the Inventory Management System.
+
+The module supports three user roles:
+
+- **Admin**
+- **Business Owner**
+- **Store Keeper**
+
+The objective was to provide a secure system where users can register and log in, manage their profiles and passwords, while administrators can manage other users and control their roles and account status.
+
+---
+
+## 2. Project Structure
+
+The User Module was organized into separate folders based on responsibility:
+
+
+src/
+│
+├── Controllers/
+│   └── userController.js
+│
+├── Models/
+│   └── User.js
+│
+├── Routes/
+│   └── userRoutes.js
+│
+├── Middleware/
+│   ├── authMiddleware.js
+│   ├── roleMiddleware.js
+│   └── validate.js
+│
+├── Validators/
+│   └── userValidator.js
+│
+└── Utils/
+    ├── generateToken.js
+    ├── generateResetToken.js
+    └── sendEmail.js
+├── Scripts/
+   └── createAdmin.js
+
+
+This structure separates the business logic, database model, routing, authentication, authorization, validation, and utility functions.
+
+---
+
+3. User Model
+
+The `User.js` model defines the information stored for every user.
+
+The main fields are:
+
+name
+email
+password
+role
+isActive
+resetPasswordToken
+resetPasswordExpire
+createdAt
+updatedAt
+
+
+The `role` field uses an enum containing:
+admin
+business_owner
+store_keeper
+
+New users registering through the public registration endpoint are automatically assigned:
+store_keeper
+
+
+This prevents a person from registering publicly and giving themselves an administrator role.
+
+MongoDB automatically generates a unique `_id` for every user, whether the account was created through registration or by an administrator.
+
+
+4. Authentication
+
+The authentication system contains:
+### Registration
+POST /api/users/register
+
+
+A user provides:
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+
+The password is hashed before being stored in MongoDB.
+
+The system then generates a JWT containing the user's ID.
+
+
+### Login
+
+POST /api/users/login
+
+
+The user provides their email and password.
+
+The system:
+1. Searches for the user.
+2. Retrieves the hashed password.
+3. Compares the supplied password with the hashed password.
+4. Checks whether the account is active.
+5. Generates a JWT.
+6. Returns the authenticated user's information.
+
+The response includes:
+json
+{
+  "user": {
+    "id": "...",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "store_keeper"
+  },
+  "token": "JWT_TOKEN"
+}
+
+
+The token is subsequently used to access protected endpoints.
+
+
+
+5. JWT Authentication
+
+JWT was used to authenticate users after login.
+
+The token contains the user's ID:
+
+javascript
+{
+  id: userId;
+}
+
+
+The `authMiddleware.js` middleware checks requests for:
+
+http
+Authorization: Bearer TOKEN
+
+
+It then:
+
+1. Extracts the token.
+2. Verifies the token using `JWT_SECRET`.
+3. Finds the corresponding user.
+4. Checks whether the user still exists.
+5. Checks whether the account is active.
+6. Places the user inside:
+
+javascript
+req.user;
+
+
+This allows controllers to identify the currently authenticated user.
+
+---
+
+6. Role-Based Authorization
+
+Authentication answers:
+
+> "Who are you?"
+
+Authorization answers:
+
+> "Are you allowed to do this?"
+
+The `roleMiddleware.js` file handles role authorization.
+
+For example:
+
+javascript
+authorize("admin");
+
+
+allows only administrators to access an endpoint.
+
+Therefore, an ordinary Store Keeper cannot access administrator user-management operations simply by possessing a valid JWT.
+
+The authorization system supports:
+Admin
+Business Owner
+Store Keeper
+
+
+with administrator-only operations currently protected using:
+javascript
+(protect, authorize("admin"));
+
+
+---
+
+7. User Profile
+
+Authenticated users can access:
+
+http
+GET /api/users/me
+
+
+This returns the currently authenticated user's information.
+
+Users can also update their profile:
+
+http
+PATCH /api/users/profile
+
+
+The profile endpoint allows changes to information such as:
+name
+email
+
+
+The user cannot use this endpoint to change their own role.
+
+This is important because otherwise a normal user could potentially submit:
+json
+{
+  "role": "admin"
+}
+
+
+and elevate their privileges.
+
+---
+
+8. Password Management
+
+Two different password operations were implemented.
+
+### Change Password
+
+For users who know their existing password:
+PATCH /api/users/change-password
+
+
+The user provides:
+{
+  "currentPassword": "oldpassword",
+  "newPassword": "newpassword123"
+}
+
+
+The system verifies the current password before allowing the change.
+
+---
+
+### Forgot Password
+
+For users who no longer remember their password:
+POST /api/users/forgot-password
+
+
+The user provides their email address.
+
+A secure reset token is generated and stored as a **hashed token** in the database.
+
+The original token is sent to the user's email through Nodemailer.
+
+The reset link expires after **15 minutes**.
+
+---
+
+### Reset Password
+
+The user follows the emailed link and submits the new password through:
+POST /api/users/reset-password/:token
+
+
+The server hashes the token received from the URL and compares it with the stored token.
+
+If the token is valid and has not expired, the password is changed.
+
+The reset token is then removed so that it cannot be reused.
+
+---
+
+9. Email Integration
+
+Nodemailer was used to send password-reset emails.
+
+The email configuration is stored in environment variables rather than directly inside the source code.
+
+Typical configuration includes:
+EMAIL_HOST
+EMAIL_PORT
+EMAIL_SECURE
+EMAIL_USER
+EMAIL_PASSWORD
+
+
+The reset email contains a link similar to:
+FRONTEND_URL/reset-password/TOKEN
+
+
+This keeps the email service credentials out of the application source code.
+
+---
+
+10. Admin User Management
+
+Administrators have additional functionality for managing users.
+
+### Create User
+
+
+POST /api/users
+
+
+An administrator can create:
+Admin
+Business Owner
+Store Keeper
+
+
+For example:
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "password123",
+  "role": "business_owner"
+}
+
+
+This is different from public registration because the administrator can assign the appropriate role.
+
+---
+
+### View All Users
+
+
+GET /api/users
+
+
+Returns the users stored in the database.
+
+---
+
+### View Individual User
+
+GET /api/users/:id
+
+
+The administrator can retrieve a specific user using their MongoDB ID.
+
+Example:
+GET /api/users/68xxxxxxxxxxxxxxxxxxxxxx
+
+
+---
+
+### Update User
+
+PATCH /api/users/:id
+
+
+The administrator can update information such as:
+
+
+name
+email
+role
+
+
+---
+
+### Activate User
+
+PATCH /api/users/:id/activate
+
+
+Changes:
+isActive = true
+
+
+---
+
+### Deactivate User
+
+PATCH /api/users/:id/deactivate
+
+
+Changes:
+isActive = false
+
+
+The implementation also prevents an administrator from deactivating their own account.
+
+---
+
+11. Validation
+
+`userValidator.js` was created using `express-validator`.
+
+Validation was implemented for:
+
+- Registration
+- Login
+- Profile updates
+- Password changes
+- Admin user creation
+- Admin user updates
+- Forgot password
+- Reset password
+- User IDs
+
+For example, the user ID validator checks:
+param("id").isMongoId();
+
+
+Therefore, an invalid ID such as:
+/api/users/hello
+
+
+can be rejected before the controller attempts to query MongoDB.
+
+The `validate.js` middleware collects validation errors and returns them to the client.
+
+---
+
+12. Security Measures
+
+Several security practices were implemented.
+
+### Password hashing
+
+Passwords are never stored as plain text.
+
+`bcryptjs` is used to hash passwords before they are saved.
+
+### Password protection
+
+The password field uses:
+select: false;
+
+
+so passwords are not automatically returned in normal queries.
+
+### JWT authentication
+
+Protected resources require a valid JWT.
+
+### Role authorization
+
+Administrative operations require the `admin` role.
+
+### Account status
+
+Inactive users cannot log in or access protected resources.
+
+### Password-reset token hashing
+
+The password-reset token sent through email is not stored directly in the database. A hashed version is stored instead.
+
+### Token expiration
+
+Reset tokens expire after 15 minutes.
+
+### Email enumeration protection
+
+The forgot-password endpoint deliberately returns the same response whether an email exists or not.
+
+This prevents attackers from using the endpoint to discover registered email addresses.
+
+---
+
+13. Challenges Encountered
+
+Several challenges were encountered during development.
+
+### CommonJS vs ES Modules
+
+The project initially used ES module syntax:
+import User from "../Models/User.js";
+
+
+The project was later converted to CommonJS:
+const User = require("../Models/User.js");
+and:
+module.exports = {
+  register,
+  login,
+  ...
+};
+
+
+This required keeping imports and exports consistent throughout the project.
+
+---
+
+### Password hashing middleware
+
+The Mongoose password hashing hook initially used the `next` parameter.
+
+The implementation was changed to an asynchronous middleware:
+userSchema.pre("save", async function () {
+
+})
+
+
+This ensures the password is hashed before the document is saved.
+
+---
+
+### Authentication vs authorization
+
+Another important distinction was understanding that having a valid JWT does not automatically mean a user can perform every operation.
+
+The system therefore uses two separate middleware layers:
+authMiddleware.js
+        ↓
+Authentication
+        ↓
+roleMiddleware.js
+        ↓
+Authorization
+
+
+---
+
+### Admin creation
+
+Public registration does not allow users to select the `admin` role.
+
+Instead, administrator accounts are created through controlled mechanisms, such as an initial admin creation process or an existing administrator creating another administrator.
+
+This prevents privilege escalation through public registration.
+
+---
+
+### Password reset
+
+Password reset required several components working together:
+Forgot password request
+        ↓
+Generate token
+        ↓
+Hash token
+        ↓
+Save hashed token
+        ↓
+Send email
+        ↓
+User clicks link
+        ↓
+Reset password endpoint
+        ↓
+Hash supplied token
+        ↓
+Compare with database
+        ↓
+Check expiration
+        ↓
+Change password
+        ↓
+Invalidate token
+
+This was one of the more complex parts of the User Module.
+
+---
+
+14. API Endpoints
+
+The completed User Module provides the following endpoints:
+
+| Method | Endpoint                           | Purpose                | Access               |
+
+| POST   | `/api/users/register`              | Register user          | Public               |
+| POST   | `/api/users/login`                 | Login                  | Public               |
+| POST   | `/api/users/logout`                | Logout                 | Authenticated        |
+| GET    | `/api/users/me`                    | Current user           | Authenticated        |
+| POST   | `/api/users/forgot-password`       | Request password reset | Public               |
+| POST   | `/api/users/reset-password/:token` | Reset password         | Public + valid token |
+| PATCH  | `/api/users/profile`               | Update profile         | Authenticated        |
+| PATCH  | `/api/users/change-password`       | Change password        | Authenticated        |
+| POST   | `/api/users`                       | Create user            | Admin                |
+| GET    | `/api/users`                       | Get all users          | Admin                |
+| GET    | `/api/users/:id`                   | Get single user        | Admin                |
+| PATCH  | `/api/users/:id`                   | Update user            | Admin                |
+| PATCH  | `/api/users/:id/activate`          | Activate user          | Admin                |
+| PATCH  | `/api/users/:id/deactivate`        | Deactivate user        | Admin                |
+
+---
+
+15. Testing
+
+The User Module can be tested using Postman or another API testing application.
+
+The testing process should cover:
+Register
+    ↓
+Login
+    ↓
+Receive JWT
+    ↓
+Send JWT in Authorization header
+    ↓
+Access protected endpoint
+    ↓
+Test role restrictions
+    ↓
+Test profile update
+    ↓
+Test password change
+    ↓
+Test forgot password
+    ↓
+Test email reset link
+    ↓
+Test new password
+    ↓
+Admin creates users
+    ↓
+Admin changes roles
+    ↓
+Admin activates/deactivates users
+
+
+Protected requests use:
+Authorization: Bearer YOUR_JWT_TOKEN
+
+
+---
+
+16. Final Result
+
+The completed User Module provides the foundation for the rest of the Inventory Management System.
+
+It handles the complete user lifecycle:
+Registration
+     ↓
+Authentication
+     ↓
+JWT Authorization
+     ↓
+Role Management
+     ↓
+Profile Management
+     ↓
+Password Management
+     ↓
+Password Recovery
+     ↓
+Admin User Management
+     ↓
+Account Activation/Deactivation
+
+
+The module was designed so that the other members of the group can build their features around an established user identity and authorization system.
+
+For example, other modules can simply use:
+req.user._id;
+
+
+to identify the current user and:
+req.user.role;
+
+
+to determine the user's role.
+
+This makes the User Module the central authentication and authorization layer of the entire application.
+
+
