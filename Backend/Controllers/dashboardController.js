@@ -1,6 +1,6 @@
-const Product = require("../models/Product");
-const StockMovement = require("../models/StockMovement");
-const Supplier = require("../models/Supplier")
+const Product = require("../Models/Product");
+const StockMovement = require("../Models/StockMovement");
+const Supplier = require("../Models/Supplier")
 
 exports.getDashboardSummary = async(req, res) => {
     try{
