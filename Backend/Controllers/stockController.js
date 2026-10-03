@@ -1,6 +1,6 @@
 const stockService = require("../Services/stockService");
 
-// req.user is set by the auth middleware once it exists
+// req.user is set by the protect middleware on routes that change stock
 const currentUserId = (req) => req.user?._id;
 
 const getAllStock = async (req, res) => {

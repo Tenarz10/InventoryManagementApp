@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const Stock = require("../Models/Stock");
 const StockMovement = require("../Models/StockMovement");
+// Registers the User model so performedBy can be populated
+require("../Models/User");
 const AppError = require("../Utils/AppError");
 const { MOVEMENT_TYPES, STOCK_STATUS } = require("../Utils/stockConstants");
 
@@ -320,6 +322,7 @@ const getMovements = async (query = {}, productId) => {
   const [items, total] = await Promise.all([
     withProduct(
       StockMovement.find(filter)
+        .populate("performedBy", "name email role")
         .sort({ createdAt: -1 })
         .skip(pagination.skip)
         .limit(pagination.limit)

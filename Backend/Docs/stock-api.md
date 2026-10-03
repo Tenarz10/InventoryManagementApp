@@ -5,6 +5,12 @@ Base path: `/api/stock`
 Each product has exactly one stock record, looked up by the product's id (`:productId`).
 Every change to a quantity is written to the stock movement history.
 
+## Authentication
+
+`GET` endpoints are public. Every endpoint that changes stock (`POST`, `PATCH`, `DELETE`) requires
+`Authorization: Bearer <token>` (see [auth-api.md](auth-api.md)); the logged-in user is recorded as
+`performedBy` on the movements it creates, and movement history returns that user's name, email and role.
+
 ## Stock status
 
 | Status         | Rule                                   |
@@ -111,5 +117,6 @@ Errors:
 | Status | When                                        |
 | ------ | ------------------------------------------- |
 | 400    | Invalid input or insufficient stock         |
+| 401    | Missing, invalid or expired token           |
 | 404    | No stock record for that product            |
 | 409    | A stock record already exists for a product |
