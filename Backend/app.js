@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 
+const supplierRoutes = require("./Routes/SupplierRoutes");
+
 const app = express();
 
 // Security middleware
@@ -16,11 +18,14 @@ app.use(express.json());
 // Parse form data
 app.use(express.urlencoded({ extended: true }));
 
+// Supplier routes
+app.use("/api/suppliers", supplierRoutes);
+
 // Base API route
 app.get("/api", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Inventory Management API is running"
+    message: "Inventory Management API is running",
   });
 });
 
@@ -28,7 +33,7 @@ app.get("/api", (req, res) => {
 app.get("/api/status", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Server is running successfully"
+    message: "Server is running successfully",
   });
 });
 
@@ -42,7 +47,7 @@ app.get("/api/status", (req, res) => {
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: "Route not found"
+    message: "Route not found",
   });
 });
 
