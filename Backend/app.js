@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const dashboardRoute = require("./Routes/dashboardRoute");
 
 const app = express();
 
@@ -23,6 +24,9 @@ app.get("/api", (req, res) => {
     message: "Inventory Management API is running"
   });
 });
+
+//Dashboard route 
+app.use("/api/dashboard", dashboardRoute);
 
 // API status route
 app.get("/api/status", (req, res) => {
