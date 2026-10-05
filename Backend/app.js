@@ -4,10 +4,10 @@ const helmet = require("helmet");
 
 // Import Route Handlers from Team Features
 const userRoutes = require("./Routes/userRoutes");             // Your Feature
-const dashboardRoutes = require("./Routes/dashboardRoute");     // Team Feature
 const productRoutes = require("./Routes/productRoutes");       // Team Feature
 const supplierRoutes = require("./Routes/SupplierRoutes");     // Team Feature
 const stockRoutes = require("./Routes/stockRoutes"); // Team Feature
+const dashboardRoutes = require("./Routes/dashboardRoute"); // Team Feature
 
 // Custom Error Handler
 const errorHandler = require("./Middleware/errorHandler");
