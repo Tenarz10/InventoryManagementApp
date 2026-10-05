@@ -1,59 +1,73 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const productRoutes = require("./Routes/productRoutes");
-const errorHandler = require("./Middleware/errorHandler");
 
-const supplierRoutes = require("./Routes/SupplierRoutes");
+// Import Route Handlers from Team Features
+const userRoutes = require("./Routes/userRoutes");             // Your Feature
+const dashboardRoutes = require("./Routes/dashboardRoute");     // Team Feature
+const productRoutes = require("./Routes/productRoutes");       // Team Feature
+const supplierRoutes = require("./Routes/SupplierRoutes");     // Team Feature
+const stockRoutes = require("./Routes/stockRoutes"); // Team Feature
+
+// Custom Error Handler
+const errorHandler = require("./Middleware/errorHandler");
 
 const app = express();
 
-// Security middleware
+// ==========================================
+// SECURITY & GLOBAL MIDDLEWARE
+// ==========================================
+
+// Security HTTP headers
 app.use(helmet());
 
-// Allow requests from frontend
-app.use(cors());
+// CORS configuration (restricts access to frontend URL in production)
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "*",
+    credentials: true,
+  })
+);
 
-// Parse incoming JSON
+// Body Parsers
 app.use(express.json());
-
-// Parse form data
 app.use(express.urlencoded({ extended: true }));
 
-// Supplier routes
-app.use("/api/suppliers", supplierRoutes);
+// ==========================================
+// HEALTH & BASE ROUTES
+// ==========================================
 
-// Base API route
-app.get("/api", (req, res) => {
+app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
     message: "Inventory Management API is running",
+    data: null,
   });
 });
 
-// API status route
-app.get("/api/status", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Server is running successfully",
-  });
-});
+// ==========================================
+// API FEATURE ROUTES
+// ==========================================
 
-// Feature routes
-app.use("/api/products", productRoutes);
-// app.use("/api/suppliers", supplierRoutes);
-// app.use("/api/stock-movements", stockMovementRoutes);
-// app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);             // User feature (Auth / Management)
+app.use("/api/dashboard", dashboardRoutes);     // Dashboard analytics
+app.use("/api/products", productRoutes);       // Products management
+app.use("/api/suppliers", supplierRoutes);     // Suppliers management
+app.use("/api/stock", stockRoutes);    // Stock movements & inventory logs
 
-// Handle routes that do not exist
-app.use((req, res) => {
+// ==========================================
+// ERROR HANDLING MIDDLEWARE
+// ==========================================
+
+// Handle 404 - Route Not Found
+app.use((req, res, next) => {
   res.status(404).json({
     success: false,
-    message: "Route not found",
+    message: `Cannot ${req.method} ${req.originalUrl} - Route not found`,
   });
 });
 
-// Central error handler (must be last)
+// Global Error Handler (Catches all thrown errors from async routes)
 app.use(errorHandler);
 
 module.exports = app;
