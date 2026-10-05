@@ -1,7 +1,10 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const dashboardRoute = require("./Routes/dashboardRoute");
+const productRoutes = require("./Routes/productRoutes");
+const errorHandler = require("./Middleware/errorHandler");
+
+const supplierRoutes = require("./Routes/SupplierRoutes");
 
 const app = express();
 
@@ -17,27 +20,27 @@ app.use(express.json());
 // Parse form data
 app.use(express.urlencoded({ extended: true }));
 
+// Supplier routes
+app.use("/api/suppliers", supplierRoutes);
+
 // Base API route
 app.get("/api", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Inventory Management API is running"
+    message: "Inventory Management API is running",
   });
 });
-
-//Dashboard route 
-app.use("/api/dashboard", dashboardRoute);
 
 // API status route
 app.get("/api/status", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Server is running successfully"
+    message: "Server is running successfully",
   });
 });
 
-// Future routes will go here
-// app.use("/api/products", productRoutes);
+// Feature routes
+app.use("/api/products", productRoutes);
 // app.use("/api/suppliers", supplierRoutes);
 // app.use("/api/stock-movements", stockMovementRoutes);
 // app.use("/api/auth", authRoutes);
@@ -46,8 +49,11 @@ app.get("/api/status", (req, res) => {
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: "Route not found"
+    message: "Route not found",
   });
 });
+
+// Central error handler (must be last)
+app.use(errorHandler);
 
 module.exports = app;
