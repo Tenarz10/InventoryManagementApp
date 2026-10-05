@@ -335,6 +335,7 @@ const getMovements = async (query = {}, productId) => {
 
 module.exports = {
   getPagination,
+  buildPaginationMeta,
   listStock,
   getLowStock,
   getStockSummary,

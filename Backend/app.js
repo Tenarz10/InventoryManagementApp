@@ -3,15 +3,27 @@ const cors = require("cors");
 const helmet = require("helmet");
 const authRoutes = require("./Routes/authRoutes");
 const stockRoutes = require("./Routes/stockRoutes");
+const userRoutes = require("./Routes/userRoutes");
 const errorHandler = require("./Middleware/errorHandler");
 
 const app = express();
 
+// Behind a reverse proxy, trust its X-Forwarded-For so rate limiting sees the real client IP.
+// TRUST_PROXY is the number of proxies in front of the app.
+const proxyHops = Number(process.env.TRUST_PROXY);
+if (proxyHops > 0) {
+  app.set("trust proxy", proxyHops);
+}
+
 // Security middleware
 app.use(helmet());
 
-// Allow requests from frontend
-app.use(cors());
+// Allow requests from the frontend; CORS_ORIGIN is a comma-separated list of allowed origins.
+// Without it every origin is allowed, which is only meant for local development.
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim())
+  : "*";
+app.use(cors({ origin: allowedOrigins }));
 
 // Parse incoming JSON
 app.use(express.json());
@@ -35,8 +47,11 @@ app.get("/api/status", (req, res) => {
   });
 });
 
-// User registration, login and current user
+// Registration, login and the logged-in user's own account
 app.use("/api/auth", authRoutes);
+
+// User management (managers can view, admins can change)
+app.use("/api/users", userRoutes);
 
 // Stock levels and stock movements (in, out, adjustments)
 app.use("/api/stock", stockRoutes);

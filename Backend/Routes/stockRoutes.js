@@ -9,52 +9,60 @@ const {
   validateStockQuery,
   validateMovementQuery
 } = require("../Validators/stockValidator");
-const { protect } = require("../Middleware/authMiddleware");
+const { protect, authorize } = require("../Middleware/authMiddleware");
+const { PERMISSIONS } = require("../Utils/authConstants");
 
 const router = express.Router();
 
-// Reads are public; every endpoint that changes stock requires a logged-in user
+// Every role can view stock and record stock in/out; managers and admins
+// manage stock records and adjust quantities; only admins delete records
+const canRead = authorize(...PERMISSIONS.STOCK_READ);
+const canMove = authorize(...PERMISSIONS.STOCK_MOVE);
+const canManage = authorize(...PERMISSIONS.STOCK_MANAGE);
+const canDelete = authorize(...PERMISSIONS.STOCK_DELETE);
+
+router.use(protect);
 
 // Fixed paths must come before /:productId
-router.get("/summary", stockController.getStockSummary);
-router.get("/low-stock", stockController.getLowStock);
-router.get("/movements", validateMovementQuery, stockController.getAllMovements);
+router.get("/summary", canRead, stockController.getStockSummary);
+router.get("/low-stock", canRead, stockController.getLowStock);
+router.get("/movements", canRead, validateMovementQuery, stockController.getAllMovements);
 
 router
   .route("/")
-  .get(validateStockQuery, stockController.getAllStock)
-  .post(protect, validateCreateStock, stockController.createStock);
+  .get(canRead, validateStockQuery, stockController.getAllStock)
+  .post(canManage, validateCreateStock, stockController.createStock);
 
 router
   .route("/:productId")
-  .all(validateProductIdParam)
-  .get(stockController.getStockByProduct)
-  .patch(protect, validateUpdateStock, stockController.updateStock)
-  .delete(protect, stockController.deleteStock);
+  .get(canRead, validateProductIdParam, stockController.getStockByProduct)
+  .patch(canManage, validateProductIdParam, validateUpdateStock, stockController.updateStock)
+  .delete(canDelete, validateProductIdParam, stockController.deleteStock);
 
 router.get(
   "/:productId/movements",
+  canRead,
   validateProductIdParam,
   validateMovementQuery,
   stockController.getProductMovements
 );
 router.post(
   "/:productId/in",
-  protect,
+  canMove,
   validateProductIdParam,
   validateStockMovement,
   stockController.stockIn
 );
 router.post(
   "/:productId/out",
-  protect,
+  canMove,
   validateProductIdParam,
   validateStockMovement,
   stockController.stockOut
 );
 router.post(
   "/:productId/adjust",
-  protect,
+  canManage,
   validateProductIdParam,
   validateStockAdjustment,
   stockController.adjustStock

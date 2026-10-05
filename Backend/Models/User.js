@@ -31,13 +31,26 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: Object.values(ROLES),
       default: ROLES.STAFF
-    }
+    },
+    // Deactivated accounts cannot log in and their tokens stop working
+    isActive: {
+      type: Boolean,
+      default: true
+    },
+    // Stored in every token; incrementing it revokes all of the user's existing tokens
+    tokenVersion: {
+      type: Number,
+      default: 0,
+      select: false
+    },
+    lastLoginAt: Date
   },
   {
     timestamps: true,
     toJSON: {
       transform: (doc, ret) => {
         delete ret.password;
+        delete ret.tokenVersion;
         delete ret.__v;
         return ret;
       }

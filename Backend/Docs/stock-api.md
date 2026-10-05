@@ -7,9 +7,15 @@ Every change to a quantity is written to the stock movement history.
 
 ## Authentication
 
-`GET` endpoints are public. Every endpoint that changes stock (`POST`, `PATCH`, `DELETE`) requires
-`Authorization: Bearer <token>` (see [auth-api.md](auth-api.md)); the logged-in user is recorded as
-`performedBy` on the movements it creates, and movement history returns that user's name, email and role.
+Every endpoint requires `Authorization: Bearer <token>` (see [auth-api.md](auth-api.md)). The logged-in
+user is recorded as `performedBy` on the movements it creates, and movement history returns that user's
+name, email and role.
+
+| Roles                 | Allowed                                                              |
+| --------------------- | -------------------------------------------------------------------- |
+| staff, manager, admin | All `GET` endpoints, stock in, stock out                             |
+| manager, admin        | Create stock records, update settings (`PATCH`), adjust quantities  |
+| admin                 | Delete stock records                                                 |
 
 ## Stock status
 
@@ -117,6 +123,7 @@ Errors:
 | Status | When                                        |
 | ------ | ------------------------------------------- |
 | 400    | Invalid input or insufficient stock         |
-| 401    | Missing, invalid or expired token           |
+| 401    | Missing, invalid, expired or revoked token  |
+| 403    | Your role is not allowed to do this         |
 | 404    | No stock record for that product            |
 | 409    | A stock record already exists for a product |
