@@ -22,12 +22,7 @@ const app = express();
 app.use(helmet());
 
 // CORS configuration (restricts access to frontend URL in production)
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || "*",
-    credentials: true,
-  })
-);
+app.use(cors());
 
 // Body Parsers
 app.use(express.json());
