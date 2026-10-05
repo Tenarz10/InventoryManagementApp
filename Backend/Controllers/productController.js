@@ -1,5 +1,4 @@
-// Controllers only handle the request/response. No database code here.
-// Express 5 passes errors from async functions to the error handler automatically.
+
 const productService = require("../Services/productService");
 
 const createProduct = async (req, res) => {

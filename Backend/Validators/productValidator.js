@@ -1,5 +1,4 @@
-// Checks incoming request data BEFORE it reaches the controller.
-// Only the fields in ALLOWED_FIELDS are kept, so users can't sneak in extra data.
+
 
 const ALLOWED_FIELDS = [
   "name",
