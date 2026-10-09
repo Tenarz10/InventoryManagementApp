@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
 import { useState } from "react";
 import Login from "./login.jsx";
-import Products from "./Products.jsx";
+import Products from "./products.jsx";
 
 function App() {
   const [token] = useState(localStorage.getItem("token"));
