@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
 import { useState } from "react";
-import Login from "./Login.jsx";
+import Login from "./login.jsx";
 import Products from "./Products.jsx";
 
 function App() {
