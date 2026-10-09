@@ -1,0 +1,224 @@
+/* Inventory Management App — UI polish */
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+}
+
+body {
+  background: #f5f7fb;
+  color: #172033;
+}
+
+.app-container,
+.inventory-container,
+.products-container {
+  width: min(1200px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 36px 0;
+}
+
+h1,
+h2,
+h3 {
+  color: #172033;
+  letter-spacing: -0.025em;
+}
+
+h1 {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
+h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+p {
+  color: #64748b;
+  line-height: 1.6;
+}
+
+form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding: 24px;
+  margin: 24px 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+form input,
+form select,
+form textarea,
+input,
+select,
+textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  color: #172033;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+form button,
+button {
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 9px;
+  font-weight: 600;
+  transition: background 0.2s, transform 0.2s;
+}
+
+form button {
+  grid-column: 1 / -1;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+form button,
+button[type="submit"] {
+  color: #ffffff;
+  background: #1d4ed8;
+}
+
+form button:hover,
+button[type="submit"]:hover {
+  background: #1e40af;
+}
+
+button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 2px;
+}
+
+/* Product list cards, if the page renders products as cards */
+.product-card,
+.product-item,
+.inventory-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  margin: 12px 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+.product-card h3,
+.product-item h3,
+.inventory-item h3 {
+  margin: 0 0 6px;
+}
+
+.product-card p,
+.product-item p,
+.inventory-item p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Action buttons */
+button.edit-button,
+button.edit-btn {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+button.delete-button,
+button.delete-btn {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 15px 18px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+th {
+  color: #475569;
+  background: #f8fafc;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+td {
+  color: #334155;
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .app-container,
+  .inventory-container,
+  .products-container {
+    width: calc(100% - 28px);
+    padding: 24px 0;
+  }
+
+  form {
+    grid-template-columns: 1fr;
+    padding: 18px;
+    gap: 12px;
+  }
+
+  form button {
+    grid-column: auto;
+  }
+
+  .product-card,
+  .product-item,
+  .inventory-item {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  th,
+  td {
+    padding: 12px;
+  }
+}
